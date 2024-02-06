@@ -55,7 +55,7 @@ public class TraineeController {
         return new ResponseEntity<>(newTrainee, HttpStatus.OK);
     }
     @PostMapping("/updateTrainee/{id}")
-    public void updateTraineeById(@PathVariable Long id, @RequestBody Trainee newTraineeData){
+    public ResponseEntity<Trainee> updateTraineeById(@PathVariable Long id, @RequestBody Trainee newTraineeData){
         Optional<Trainee> oldTraineeData = traineeRepo.findById(id);
 
         if(oldTraineeData.isPresent()){
@@ -63,10 +63,16 @@ public class TraineeController {
 
             updatedTraineeData.setFirstName(newTraineeData.getFirstName());
             updatedTraineeData.setLastName(newTraineeData.getLastName());
-        }
-    }
-    @DeleteMapping
-    public void deleteTraineeById(){
 
+            Trainee traineeObj = traineeRepo.save(updatedTraineeData);
+            return new ResponseEntity<>(traineeObj, HttpStatus.OK);
+        }
+
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+    @DeleteMapping("/deleteTrainee/{id}")
+    public ResponseEntity<HttpStatus> deleteTraineeById(@PathVariable Long id){
+        traineeRepo.deleteById(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }
