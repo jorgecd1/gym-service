@@ -8,7 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -16,6 +18,7 @@ public class TrainerService {
 
     @Autowired
     private TrainerDAO dao;
+    Map<String,Long> nameList = new HashMap<>();
 
     // GET DAO
     public TrainerDAO getTrainerDao(){
@@ -47,7 +50,23 @@ public class TrainerService {
     public ResponseEntity<Trainer> addTrainer(Trainer trainer){
         try
         {
-            trainer.setUsername(trainer.getFirstName()+"."+trainer.getLastName());
+            String generatedUsername = trainer.getFirstName()+"."+trainer.getLastName();
+            nameList.merge(generatedUsername,1L,Long::sum);
+            Long nameCounter = nameList.get(generatedUsername);
+
+            if(nameCounter > 0)
+            {
+                if(nameCounter == 1L){
+                    trainer.setUsername(generatedUsername);
+                }
+                else{
+                    trainer.setUsername(generatedUsername+nameCounter);
+                }
+            }
+            else
+            {
+                trainer.setUsername(generatedUsername);
+            }
             trainer.setPassword(generatePassword());
 
             dao.save(trainer);
