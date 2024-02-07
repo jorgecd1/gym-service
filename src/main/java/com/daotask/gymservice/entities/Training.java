@@ -16,17 +16,17 @@ public class Training {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long trainingId;
+    private Long trainingId; // generated
 
     // TABLE DATA
-    private Date trainingDate;
-    private int trainingTime;
+    private Date trainingDate; // passed
+    private int trainingTime; // passed
 
     // FOREIGN DATA
-    private String trainingName;
+    private String trainingName; // fetch
 
     // FOREIGN KEYS
-    private Long trainerId;
-    private Long traineeId;
-    private Long trainingTypeId;
+    private Long trainerId; // passed
+    private Long traineeId; // passed
+    private Long trainingTypeId; //passed
 }

@@ -1,12 +1,14 @@
 package com.daotask.gymservice.service;
 
-import com.daotask.gymservice.ClassPackages.DataGenerator;
 import com.daotask.gymservice.dao.TraineeDAO;
 import com.daotask.gymservice.entities.Trainee;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.util.logging.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +18,6 @@ public class TraineeService {
 
     @Autowired
     private TraineeDAO dao;
-    private DataGenerator dataGenerator;
 
     // GET DAO
     public TraineeDAO getTraineeDAO(){
@@ -48,8 +49,8 @@ public class TraineeService {
     public ResponseEntity<Trainee> addTrainee(Trainee trainee){
         try
         {
-            trainee.setPassword(dataGenerator.generatePassword());
-            trainee.setUsername(dataGenerator.generateUsername(trainee.getFirstName(),trainee.getLastName()));
+            trainee.setUsername(trainee.getFirstName()+"."+trainee.getLastName());
+            trainee.setPassword(generatePassword());
 
             dao.save(trainee);
             return new ResponseEntity<>(trainee, HttpStatus.OK);
@@ -105,5 +106,20 @@ public class TraineeService {
             return new ResponseEntity<>(trainee.get(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    // METHODS
+    public String generatePassword(){
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder randomString = new StringBuilder(10);
+        SecureRandom random = new SecureRandom();
+
+        for (int i = 0; i < 10; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            char randomChar = characters.charAt(randomIndex);
+            randomString.append(randomChar);
+        }
+
+        return randomString.toString();
     }
 }

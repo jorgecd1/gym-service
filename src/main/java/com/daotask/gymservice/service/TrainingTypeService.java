@@ -47,7 +47,7 @@ public class TrainingTypeService {
         try
         {
             dao.save(trainingType);
-            return new ResponseEntity<>(HttpStatus.OK);
+            return new ResponseEntity<>(trainingType, HttpStatus.OK);
         }
         catch(Exception e)
         {

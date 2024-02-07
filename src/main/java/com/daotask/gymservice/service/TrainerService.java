@@ -1,6 +1,5 @@
 package com.daotask.gymservice.service;
 
-import com.daotask.gymservice.ClassPackages.DataGenerator;
 import com.daotask.gymservice.dao.TrainerDAO;
 import com.daotask.gymservice.entities.Trainer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.security.SecureRandom;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,7 +16,6 @@ public class TrainerService {
 
     @Autowired
     private TrainerDAO dao;
-    private DataGenerator dataGenerator;
 
     // GET DAO
     public TrainerDAO getTrainerDao(){
@@ -48,8 +47,8 @@ public class TrainerService {
     public ResponseEntity<Trainer> addTrainer(Trainer trainer){
         try
         {
-            trainer.setUsername(dataGenerator.generateUsername(trainer.getFirstName(),trainer.getLastName()));
-            trainer.setPassword(dataGenerator.generatePassword());
+            trainer.setUsername(trainer.getFirstName()+"."+trainer.getLastName());
+            trainer.setPassword(generatePassword());
 
             dao.save(trainer);
             return new ResponseEntity<>(trainer, HttpStatus.OK);
@@ -104,5 +103,20 @@ public class TrainerService {
             return new ResponseEntity<>(trainer.get(), HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    // METHODS
+    public String generatePassword(){
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder randomString = new StringBuilder(10);
+        SecureRandom random = new SecureRandom();
+
+        for (int i = 0; i < 10; i++) {
+            int randomIndex = random.nextInt(characters.length());
+            char randomChar = characters.charAt(randomIndex);
+            randomString.append(randomChar);
+        }
+
+        return randomString.toString();
     }
 }
