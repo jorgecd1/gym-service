@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.logging.Logger;
 
 @Service
 public class TraineeService {
@@ -16,6 +17,7 @@ public class TraineeService {
     @Autowired
     private TraineeDAO dao;
     Map<String,Long> nameList = new HashMap<>();
+    Logger l = Logger.getLogger(TraineeService.class.getName());
 
     // GET DAO
     public TraineeDAO getTraineeDAO(){
@@ -67,10 +69,12 @@ public class TraineeService {
             trainee.setPassword(generatePassword());
 
             dao.save(trainee);
+            l.info("A new entity with Id#"+trainee.getTraineeId()+" was created!");
             return new ResponseEntity<>(trainee, HttpStatus.OK);
         }
         catch(Exception e)
         {
+            l.warning("Entity could not be created!");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -86,13 +90,14 @@ public class TraineeService {
             updateTrainee.setUsername(newTrainee.getUsername());
             updateTrainee.setPassword(newTrainee.getPassword());
             updateTrainee.setActive(newTrainee.isActive());
-
             updateTrainee.setAddress(newTrainee.getAddress());
             updateTrainee.setDateOfBirth(newTrainee.getDateOfBirth());
 
             Trainee objTrainee = dao.save(updateTrainee);
+            l.info("An entity with Id#"+newTrainee.getTraineeId()+" was updated!");
             return new ResponseEntity<>(objTrainee, HttpStatus.OK);
         }
+        l.warning("Entity could not be updated!");
         return new ResponseEntity<>(newTrainee, HttpStatus.NOT_FOUND);
     }
 
