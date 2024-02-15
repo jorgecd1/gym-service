@@ -8,9 +8,7 @@ import java.util.List;
 @Entity
 @Table(name = "trainers")
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class Trainer {
 
     @Id

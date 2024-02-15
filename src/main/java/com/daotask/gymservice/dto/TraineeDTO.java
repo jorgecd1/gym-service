@@ -4,9 +4,9 @@ import lombok.*;
 
 import java.util.Date;
 
-@Getter
+@Data
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 public class TraineeDTO {
     private String username;
     private String password;

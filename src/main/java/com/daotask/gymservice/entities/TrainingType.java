@@ -6,9 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "training_types")
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class TrainingType {
 
     @Id

@@ -9,9 +9,7 @@ import java.util.List;
 @Entity
 @Table(name = "trainees")
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class Trainee {
 
     @Id

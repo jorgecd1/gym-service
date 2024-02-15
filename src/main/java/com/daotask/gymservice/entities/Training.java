@@ -8,9 +8,7 @@ import java.util.Date;
 @Entity
 @Table(name = "trainings")
 @NoArgsConstructor
-@Getter
-@Setter
-@ToString
+@Data
 public class Training {
 
     @Id

@@ -3,9 +3,9 @@ package com.daotask.gymservice.dto;
 import com.daotask.gymservice.entities.TrainingType;
 import lombok.*;
 
-@Getter
+@Data
 @AllArgsConstructor
-@ToString
+@NoArgsConstructor
 public class TrainerDTO {
     private String username;
     private String password;
