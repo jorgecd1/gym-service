@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "trainees")
@@ -26,5 +27,5 @@ public class Trainee {
     private User user;
 
     @ManyToMany
-    private List<Trainer> trainers;
+    private Set<Trainer> trainers;
 }

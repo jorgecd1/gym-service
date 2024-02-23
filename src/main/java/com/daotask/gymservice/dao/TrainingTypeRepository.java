@@ -9,6 +9,4 @@ import java.util.Optional;
 @Repository
 public interface TrainingTypeRepository extends JpaRepository<TrainingType,Long> {
 
-    Optional<TrainingType> findByName(String name);
-    boolean existsByName(String type);
 }

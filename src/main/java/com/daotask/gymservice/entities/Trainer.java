@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "trainers")
@@ -21,5 +22,5 @@ public class Trainer {
     private User user;
 
     @ManyToMany
-    private List<Trainee> trainees;
+    private Set<Trainee> trainees;
 }
