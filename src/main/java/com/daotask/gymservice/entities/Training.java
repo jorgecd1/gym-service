@@ -21,10 +21,12 @@ public class Training {
     @Temporal(TemporalType.DATE)
     private Date date;
     @Column(name = "training_duration", nullable = false)
-    private Integer duration;
+    private int duration;
 
     @ManyToOne
     private TrainingType trainingType;
     @ManyToOne
     private Trainee trainee;
+    @ManyToOne
+    private Trainer trainer;
 }

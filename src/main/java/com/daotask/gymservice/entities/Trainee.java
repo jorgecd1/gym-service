@@ -6,6 +6,7 @@ import lombok.*;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 
 @Entity
 @Table(name = "trainees")
@@ -27,5 +28,15 @@ public class Trainee {
     private User user;
 
     @ManyToMany
-    private Set<Trainer> trainers;
+    private Set<Training> trainers;
+
+    public void addTraining(Training training, Logger logger){
+        if(trainers.contains(training)){
+            logger.info("Trainer already assigned to this Trainee");
+        }
+        else {
+            logger.info("Added new Trainer to this Trainee");
+            trainers.add(training);
+        }
+    }
 }
