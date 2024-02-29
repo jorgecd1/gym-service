@@ -340,5 +340,4 @@ public class TraineeService {
         }
         return Optional.empty();
     }
-
 }
