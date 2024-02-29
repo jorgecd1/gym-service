@@ -2,6 +2,9 @@ package com.daotask.gymservice.dao;
 
 import com.daotask.gymservice.entities.Training;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public interface TrainingDAO extends JpaRepository<Training, Long> {
+@Repository
+public interface TrainingRepository extends JpaRepository<Training,Long> {
+
 }

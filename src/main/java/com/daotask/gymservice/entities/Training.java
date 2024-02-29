@@ -6,27 +6,27 @@ import lombok.*;
 import java.util.Date;
 
 @Entity
-@Table(name="trainings")
+@Table(name = "trainings")
 @NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
-@ToString
+@Data
 public class Training {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long trainingId; // generated
+    private Long id;
 
-    // TABLE DATA
-    private Date trainingDate; // passed
-    private int trainingTime; // passed
+    @Column(name = "training_name", nullable = false)
+    private String name;
+    @Column(name = "training_date", nullable = false)
+    @Temporal(TemporalType.DATE)
+    private Date date;
+    @Column(name = "training_duration", nullable = false)
+    private int duration;
 
-    // FOREIGN DATA
-    private String trainingName; // fetch
-
-    // FOREIGN KEYS
-    private Long trainerId; // passed
-    private Long traineeId; // passed
-    private Long trainingTypeId; //passed
+    @ManyToOne
+    private TrainingType trainingType;
+    @ManyToOne
+    private Trainee trainee;
+    @ManyToOne
+    private Trainer trainer;
 }

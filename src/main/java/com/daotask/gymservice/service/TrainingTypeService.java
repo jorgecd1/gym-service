@@ -1,6 +1,9 @@
 package com.daotask.gymservice.service;
 
-import com.daotask.gymservice.dao.TrainingTypeDAO;
+import com.daotask.gymservice.GymServiceApplication;
+import com.daotask.gymservice.dao.TrainingRepository;
+import com.daotask.gymservice.dao.TrainingTypeRepository;
+import com.daotask.gymservice.entities.Training;
 import com.daotask.gymservice.entities.TrainingType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -8,91 +11,113 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @Service
 public class TrainingTypeService {
 
+    TrainingTypeRepository trainingTypeRepository;
+    Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
+
     @Autowired
-    private TrainingTypeDAO dao;
-
-    // GET DAO
-    public TrainingTypeDAO getTrainingTypeDAO(){
-        return dao;
+    public TrainingTypeService(TrainingTypeRepository trainingTypeRepository){
+        this.trainingTypeRepository = trainingTypeRepository;
     }
-
-    // DELETE DATA
-    public ResponseEntity<TrainingType> deleteTrainingType(Long id){
-        try
-        {
-            Optional<TrainingType> trainingType = dao.findById(id);
-
-            if(trainingType.isPresent())
-            {
-                TrainingType t = trainingType.get();
-
-                dao.deleteById(id);
-                return new ResponseEntity<>(t, HttpStatus.OK);
+    // Should support create and get training type
+    // Create
+    public ResponseEntity<String> add(String name){
+        try{
+            if(Objects.isNull(name)){
+                logger.warning("Error when handling TrainingType.add, Name was null");
+                return new ResponseEntity<>(
+                        "Training-Type name cannot be null",
+                        HttpStatus.NOT_ACCEPTABLE);
             }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+
+            TrainingType trainingType = new TrainingType();
+            trainingType.setName(name);
+
+            trainingTypeRepository.save(trainingType);
+            logger.info("Successfully added new TrainingType");
+            return new ResponseEntity<>(
+                    "New TrainingType added: {"
+                            + trainingType.toString()
+                            +"}",
+                    HttpStatus.OK
+            );
         }
-        catch(Exception e)
-        {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        catch (Exception e){
+            logger.severe(
+                    "An unknown error happened when trying: TrainingType.add"
+            );
+            return new ResponseEntity<>(
+                    "Severe error occurred",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
-
-    // POST DATA
-    public ResponseEntity<TrainingType> addTrainingType(TrainingType trainingType){
-        try
-        {
-            dao.save(trainingType);
-            return new ResponseEntity<>(trainingType, HttpStatus.OK);
-        }
-        catch(Exception e)
-        {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-    public ResponseEntity<TrainingType> updateTraining(Long id, TrainingType newTrainingType){
-        Optional<TrainingType> oldTraining = dao.findById(id);
-
-        if(oldTraining.isPresent())
-        {
-            TrainingType updateTrainingType = oldTraining.get();
-
-            updateTrainingType.setTrainingTypeName(newTrainingType.getTrainingTypeName());
-
-            TrainingType objTrainingType = dao.save(updateTrainingType);
-            return new ResponseEntity<>(objTrainingType, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(newTrainingType, HttpStatus.NOT_FOUND);
-    }
-
-    // GET DATA
-    public ResponseEntity<List<TrainingType>> getAllTrainingTypes(){
-        try
-        {
-            List<TrainingType> trainingTypes = dao.findAll();
-
-            if(trainingTypes.isEmpty())
-            {
-                return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    // Get
+    public ResponseEntity<String> get(Long id){
+        try{
+            Optional<TrainingType> trainingType = trainingTypeRepository.findById(id);
+            if(trainingType.isPresent()){
+                logger.info("Success retrieving TrainingType by Id");
+                return new ResponseEntity<>(
+                        trainingType.get().toString(),
+                        HttpStatus.OK
+                );
             }
-            return new ResponseEntity<>(trainingTypes, HttpStatus.OK);
+            else {
+                logger.info(
+                        "No TrainingType was found"
+                );
+                return new ResponseEntity<>(
+                        "No TrainingType with such id, id#"+id,
+                        HttpStatus.NOT_FOUND
+                );
+            }
         }
-        catch(Exception e)
-        {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        catch (Exception e){
+            logger.severe("An unknown error happened when trying: TrainingType.get");
+            return new ResponseEntity<>(
+                    "Severe error occurred",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
-    public ResponseEntity<TrainingType> getTrainingTypeById(Long id){
-        Optional<TrainingType> trainingType = dao.findById(id);
-
-        if(trainingType.isPresent())
-        {
-            return new ResponseEntity<>(trainingType.get(), HttpStatus.OK);
+    public ResponseEntity<List<TrainingType>> getAll(){
+        try {
+            List<TrainingType> trainingTypes = trainingTypeRepository.findAll();
+            if(trainingTypes.isEmpty()){
+                logger.info("No TrainingTypes are registered or none were found");
+                return new ResponseEntity<>(
+                        HttpStatus.NO_CONTENT
+                );
+            }
+            else {
+                logger.info("Successfully retrieved TrainingType List");
+                return new ResponseEntity<>(
+                        trainingTypes,
+                        HttpStatus.OK
+                );
+            }
         }
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        catch (Exception e){
+            logger.severe("An unknown error happened when trying: TrainingType.getAll");
+            return new ResponseEntity<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+    public Optional<TrainingType> trainingTypeByUsername(String name){
+        List<TrainingType> trainingTypes = trainingTypeRepository.findAll();
+        for(TrainingType trainingType : trainingTypes){
+            logger.info("Found TrainingType: "+name);
+            return Optional.of(trainingType);
+        }
+        logger.info("TrainingType not found: "+name);
+        return Optional.empty();
     }
 }

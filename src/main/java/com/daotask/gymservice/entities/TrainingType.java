@@ -4,18 +4,15 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name="trainingType")
+@Table(name = "training_types")
 @NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
-@ToString
+@Data
 public class TrainingType {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long trainingTypeId;
+    private Long id;
 
-    // TABLE DATA
-    private String trainingTypeName;
+    @Column(name = "training_type_name", nullable = false)
+    private String name;
 }

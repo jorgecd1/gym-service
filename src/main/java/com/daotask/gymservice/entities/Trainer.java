@@ -3,25 +3,35 @@ package com.daotask.gymservice.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Logger;
+
 @Entity
-@Table(name="trainers")
+@Table(name = "trainers")
 @NoArgsConstructor
-@AllArgsConstructor
-@Setter
-@Getter
-@ToString
+@Data
 public class Trainer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long trainerId;
+    private Long id;
 
-    // TABLE DATA
-    private String firstName;
-    private String lastName;
-    private String username;
-    private String password;
-    private boolean isActive;
+    @ManyToOne
+    private TrainingType trainingType;
+    @OneToOne
+    private User user;
 
-    private String specialization;
+    @ManyToMany
+    private Set<Training> trainees;
+
+    public void addTraining(Training training, Logger logger){
+        if(trainees.contains(training)){
+            logger.info("Training already assigned to this Trainer");
+        }
+        else {
+            logger.info("Added new Training to this Trainer");
+            trainees.add(training);
+        }
+    }
 }

@@ -1,144 +1,343 @@
 package com.daotask.gymservice.service;
 
-import com.daotask.gymservice.dao.TraineeDAO;
+import com.daotask.gymservice.GymServiceApplication;
+import com.daotask.gymservice.Utility;
+import com.daotask.gymservice.dao.TraineeRepository;
+import com.daotask.gymservice.dao.TrainerRepository;
+import com.daotask.gymservice.dao.UserRepository;
+import com.daotask.gymservice.dto.NewTraineeDTO;
+import com.daotask.gymservice.dto.ToggleActiveStatusDTO;
+import com.daotask.gymservice.dto.UpdateTraineeDTO;
 import com.daotask.gymservice.entities.Trainee;
+import com.daotask.gymservice.entities.Trainer;
+import com.daotask.gymservice.entities.Training;
+import com.daotask.gymservice.entities.User;
+import jdk.jshell.execution.Util;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.security.SecureRandom;
 import java.util.*;
 import java.util.logging.Logger;
 
 @Service
 public class TraineeService {
 
+    TraineeRepository traineeRepository;
+    TrainerRepository trainerRepository;
+    UserRepository userRepository;
+    UserService userService;
+
+    Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
+
     @Autowired
-    private TraineeDAO dao;
-    Map<String,Long> nameList = new HashMap<>();
-    Logger l = Logger.getLogger(TraineeService.class.getName());
-
-    // GET DAO
-    public TraineeDAO getTraineeDAO(){
-        return dao;
+    public TraineeService(
+            TraineeRepository traineeRepository,
+            TrainerRepository trainerRepository,
+            UserRepository userRepository,
+            UserService userService
+    ){
+        this.traineeRepository = traineeRepository;
+        this.trainerRepository = trainerRepository;
+        this.userRepository = userRepository;
+        this.userService = userService;
     }
+    // Should support create, read, update and delete operations
+    public ResponseEntity<String> add(NewTraineeDTO traineeDTO) {
+        try {
+            Utility utility = new Utility();
 
-    // DELETE DATA
-    public ResponseEntity<Trainee> deleteTrainee(Long id){
-        try
-        {
-            Optional<Trainee> trainee = dao.findById(id);
+            Trainee trainee = new Trainee();
+            User user = new User();
 
-            if(trainee.isPresent())
-            {
-                Trainee t = trainee.get();
+            // Set user data
+            logger.info("Saving new user data");
+            user.setFirstName(traineeDTO.getFirstName());
+            user.setLastName(traineeDTO.getLastName());
+            // Generate unique username
+            user.setUsername(userService.usernameGenerator(
+                    traineeDTO.getFirstName(),
+                    traineeDTO.getLastName()
+            ));
+            user.setPassword(utility.generatePassword());
+            user.setIsActive(true);
+            // Set trainee data
+            logger.info("Generating and matching new trainee data");
+            trainee.setAddress(traineeDTO.getAddress());
+            trainee.setDateOfBirth(traineeDTO.getDateOfBirth());
+            trainee.setUser(user);
 
-                dao.deleteById(id);
-                return new ResponseEntity<>(t, HttpStatus.OK);
+            userRepository.save(user);
+            traineeRepository.save(trainee);
+
+            logger.info("Successfully saved new Trainee: "+trainee.toString());
+            logger.info("Successfully saved new User: "+user.toString());
+
+            return new ResponseEntity<>(
+                    "Created Trainee-User: \n"+
+                    "Username: "+user.getUsername()+"\n"+
+                    "Password: "+user.getPassword(),
+                    HttpStatus.OK
+            );
+        }
+        catch (Exception e) {
+            logger.severe("An error occurred when creating new Trainee-User Entity");
+            return new ResponseEntity<>(
+                    "An error occurred",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
+        }
+    }
+    public ResponseEntity<String> getByUsername(String username){
+        List<Trainee> trainees = traineeRepository.findAll();
+        Utility utility = new Utility();
+
+        for(Trainee trainee : trainees){
+            if(trainee.getUser().getUsername().equals(username)){
+                // Found
+                String trainings = utility.trainingFormatter(trainee.getTrainers());
+                User user = trainee.getUser();
+                return new ResponseEntity<>(
+                  "Found trainee: \n"+
+                   user.getFirstName()+"\n"+
+                   user.getLastName()+"\n"+
+                        trainee.getDateOfBirth()+"\n"+
+                        trainee.getAddress()+"\n"+
+                        user.getIsActive()+"\n"+
+                        trainings,
+                   HttpStatus.OK
+                );
             }
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        catch(Exception e)
-        {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        // Not found
+        logger.info("No trainee by that username");
+        return new ResponseEntity<>(
+                HttpStatus.NOT_FOUND
+        );
+    }
+    public ResponseEntity<String> get(Long id){
+        try {
+            Optional<Trainee> trainee = traineeRepository.findById(id);
+            if(trainee.isPresent()){
+                logger.info("Successfully retrieved Trainee-User with id:"+id);
+                return new ResponseEntity<>(
+                        "Retrieved: "+
+                        trainee.get().toString()+
+                        trainee.get().getUser().toString(),
+                        HttpStatus.OK
+                );
+            }
+            else {
+                logger.info("No Trainee-User was found with id#"+id);
+                return new ResponseEntity<>(
+                        HttpStatus.NOT_FOUND
+                );
+            }
+        }
+        catch (Exception e) {
+            logger.severe(
+                    "A severe error occurred when calling TraineeService.get"
+            );
+            return new ResponseEntity<>(
+                    "An error occurred",
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
+    public ResponseEntity<String> getNotAssignedTrainers(String username){
+        List<Trainer> trainers = trainerRepository.findAll();
+        if(trainers.isEmpty()){
+            logger.info("No trainers are registered");
+            return new ResponseEntity<>(
+                    "No trainers are currently registered on DBS",
+                    HttpStatus.NO_CONTENT
+            );
+        }
+        Optional<Trainee> optionalTrainee = traineesByUsername(username);
+        if(optionalTrainee.isPresent()){
+            Set<String> assignedTrainerUsernames = new HashSet<>();
+            Set<Trainer> nonAssignedTrainers = new HashSet<>();
 
-    // POST DATA
-    public ResponseEntity<Trainee> addTrainee(Trainee trainee){
-        try
-        {
-            String generatedUsername = trainee.getFirstName()+"."+trainee.getLastName();
-            nameList.merge(generatedUsername,1L,Long::sum);
-            Long nameCounter = nameList.get(generatedUsername);
-
-            if(nameCounter > 0)
-            {
-                if(nameCounter == 1L){
-                    trainee.setUsername(generatedUsername);
+            for(Training training : optionalTrainee.get().getTrainers()){
+                assignedTrainerUsernames.add(training.getTrainer().getUser().getUsername());
+            }
+            for(String usernameAssigned : assignedTrainerUsernames){
+                for(Trainer trainer : trainers){
+                    if(!assignedTrainerUsernames.contains(trainer.getUser().getUsername())){
+                        nonAssignedTrainers.add(trainer);
+                    }
                 }
-                else{
-                    trainee.setUsername(generatedUsername+nameCounter);
-                }
             }
-            else
-            {
-                trainee.setUsername(generatedUsername);
+            if(nonAssignedTrainers.isEmpty()){
+                logger.info("All available Trainers are assigned to this Trainee");
+                return new ResponseEntity<>(
+                        HttpStatus.NO_CONTENT
+                );
             }
-            trainee.setPassword(generatePassword());
-
-            dao.save(trainee);
-            l.info("A new entity with Id#"+trainee.getTraineeId()+" was created!");
-            return new ResponseEntity<>(trainee, HttpStatus.OK);
+            else {
+                logger.info("Retrieving non-assigned Trainers to this Trainee");
+                Utility utility = new Utility();
+                String formattedTrainers = utility.trainerFormatter(nonAssignedTrainers);
+                return new ResponseEntity<>(
+                        formattedTrainers,
+                        HttpStatus.OK
+                );
+            }
         }
-        catch(Exception e)
-        {
-            l.warning("Entity could not be created!");
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        else {
+            logger.info("No trainee with this username was found: "+username);
+            return new ResponseEntity<>(
+                    "No trainee with username: "+username,
+                    HttpStatus.NOT_FOUND
+            );
         }
     }
-    public ResponseEntity<Trainee> updateTrainee(Long id, Trainee newTrainee){
-        Optional<Trainee> oldTrainee = dao.findById(id);
-
-        if(oldTrainee.isPresent())
-        {
-            Trainee updateTrainee = oldTrainee.get();
-
-            updateTrainee.setFirstName(newTrainee.getFirstName());
-            updateTrainee.setLastName(newTrainee.getLastName());
-            updateTrainee.setUsername(newTrainee.getUsername());
-            updateTrainee.setPassword(newTrainee.getPassword());
-            updateTrainee.setActive(newTrainee.isActive());
-            updateTrainee.setAddress(newTrainee.getAddress());
-            updateTrainee.setDateOfBirth(newTrainee.getDateOfBirth());
-
-            Trainee objTrainee = dao.save(updateTrainee);
-            l.info("An entity with Id#"+newTrainee.getTraineeId()+" was updated!");
-            return new ResponseEntity<>(objTrainee, HttpStatus.OK);
-        }
-        l.warning("Entity could not be updated!");
-        return new ResponseEntity<>(newTrainee, HttpStatus.NOT_FOUND);
-    }
-
-    // GET DATA
-    public ResponseEntity<List<Trainee>> getAllTrainees(){
-        try
-        {
-            List<Trainee> trainees = dao.findAll();
-
-            if(trainees.isEmpty())
-            {
+    public ResponseEntity<List<String>> getAll(){
+        try {
+            List<Trainee> trainees = traineeRepository.findAll();
+            if(trainees.isEmpty()){
+                logger.info("No trainees were found");
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT);
             }
-            return new ResponseEntity<>(trainees, HttpStatus.OK);
+            else {
+                List<String> responseBody = new ArrayList<>();
+                for(Trainee trainee : trainees){
+                    User user = trainee.getUser();
+                    responseBody.add(
+                            "Trainee: {" +
+                                    trainee.getDateOfBirth()+", "+
+                                    trainee.getAddress()+", "+
+                                    user.getUsername()+", "+
+                                    user.getIsActive()+
+                            "}"
+                    );
+                }
+                return new ResponseEntity<>(
+                        responseBody,
+                        HttpStatus.OK
+                );
+            }
         }
-        catch(Exception e){
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        catch (Exception e) {
+            logger.severe("An error occurred at: TraineeService.getAll");
+            return new ResponseEntity<>(
+                    HttpStatus.INTERNAL_SERVER_ERROR
+            );
         }
     }
-    public ResponseEntity<Trainee> getTraineeById(Long id){
-        Optional<Trainee> trainee = dao.findById(id);
-
-        if(trainee.isPresent())
-        {
-            return new ResponseEntity<>(trainee.get(), HttpStatus.OK);
+    public ResponseEntity<String> toggleStatus(ToggleActiveStatusDTO statusDTO){
+        Optional<Trainee> optionalTrainee = traineesByUsername(statusDTO.getUsername());
+        if(optionalTrainee.isPresent()){
+            User user = optionalTrainee.get().getUser();
+            boolean previousStatus = user.getIsActive();
+            if(previousStatus){
+                logger.info("Changing status to inactive for Trainee.username: "+statusDTO.getUsername());
+                user.setIsActive(false);
+                userRepository.save(user);
+                return new ResponseEntity<>(
+                        "Changed to inactive status",
+                        HttpStatus.OK
+                );
+            }
+            else {
+                logger.info("Changing status to active for Trainee.username: "+statusDTO.getUsername());
+                user.setIsActive(true);
+                userRepository.save(user);
+                return new ResponseEntity<>(
+                        "Changed to active status",
+                        HttpStatus.OK
+                );
+            }
         }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        else {
+            logger.info("No Trainee by this username exists, could not toggle status");
+            return new ResponseEntity<>(
+                    HttpStatus.NOT_FOUND
+            );
+        }
     }
+    public ResponseEntity<String> update(UpdateTraineeDTO traineeDTO){
+        Optional<Trainee> trainee = traineesByUsername(traineeDTO.getUsername());
+        if(trainee.isPresent()){
+            User user = trainee.get().getUser();
+            Trainee t = trainee.get();
 
-    // METHODS
-    public String generatePassword(){
-        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-        StringBuilder randomString = new StringBuilder(10);
-        SecureRandom random = new SecureRandom();
+            t.setDateOfBirth(traineeDTO.getDateOfBirth());
+            t.setAddress(traineeDTO.getAddress());
+            user.setFirstName(traineeDTO.getFirstName());
+            user.setLastName(traineeDTO.getLastName());
+            user.setIsActive(traineeDTO.isActive());
 
-        for (int i = 0; i < 10; i++) {
-            int randomIndex = random.nextInt(characters.length());
-            char randomChar = characters.charAt(randomIndex);
-            randomString.append(randomChar);
+            t.setUser(user);
+
+            try {
+                logger.info("Updated Trainee-User with name: "+user.getUsername());
+                traineeRepository.save(t);
+                userRepository.save(user);
+
+                Utility utility = new Utility();
+                String trainings = utility.trainingFormatter(trainee.get().getTrainers());
+                return new ResponseEntity<>(
+                        "Found trainee: \n"+
+                                user.getFirstName()+"\n"+
+                                user.getLastName()+"\n"+
+                                t.getDateOfBirth()+"\n"+
+                                t.getAddress()+"\n"+
+                                user.getIsActive()+"\n"+
+                                trainings,
+                        HttpStatus.OK
+                );
+            }
+            catch (Exception e) {
+                logger.severe("An error occurred when updating a Trainee-User");
+                return new ResponseEntity<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
         }
+        else {
+            logger.info("No Trainee with that username was found");
+            return new ResponseEntity<>(
+                    HttpStatus.NOT_FOUND
+            );
+        }
+    }
+    public ResponseEntity<String> delete(String username){
+        Optional<Trainee> trainee = traineesByUsername(username);
+        if(trainee.isPresent()){
+            try {
+                logger.info("Deleting Trainee-User by username: "+username);
+                userRepository.delete(trainee.get().getUser());
+                traineeRepository.delete(trainee.get());
 
-        return randomString.toString();
+                return new ResponseEntity<>(
+                        "Successfully deleted Trainee-User: "+username,
+                        HttpStatus.OK
+                );
+            }
+            catch (Exception e) {
+                logger.severe("An error occurred when deleting Trainee-User: "+username);
+                return new ResponseEntity<>(
+                        HttpStatus.INTERNAL_SERVER_ERROR
+                );
+            }
+        }
+        else {
+            logger.severe("No Trainee-User by that username: "+username);
+            return new ResponseEntity<>(
+                    HttpStatus.NOT_FOUND
+            );
+        }
+    }
+    // Should support a login by username and password
+    public Optional<Trainee> traineesByUsername(String username){
+        List<Trainee> trainees = traineeRepository.findAll();
+        for(Trainee trainee : trainees){
+            if(trainee.getUser().getUsername().equals(username)){
+                return Optional.of(trainee);
+            }
+        }
+        return Optional.empty();
     }
 }
