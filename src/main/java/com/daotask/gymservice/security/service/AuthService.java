@@ -29,7 +29,7 @@ public class AuthService {
 
             var token = jwtIssuer.issue(JwtIssuer.Request.builder()
                     .userId(principal.getUserId())
-                    .email(principal.getEmail())
+                    .username(principal.getUsername())
                     .roles(principal.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
                     .build());
 

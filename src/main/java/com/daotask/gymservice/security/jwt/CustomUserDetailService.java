@@ -20,7 +20,7 @@ public class CustomUserDetailService implements UserDetailsService {
         var user = userService.findByEmail(username).orElseThrow();
         return UserPrincipal.builder()
                 .userId(user.getId())
-                .email(user.getEmail())
+                .username(user.getUsername())
                 .password(user.getPassword())
                 .authorities(List.of(new SimpleGrantedAuthority(user.getRole())))
                 .build();

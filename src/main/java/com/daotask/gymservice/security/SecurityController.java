@@ -10,7 +10,7 @@ public class SecurityController {
     @GetMapping("/secured")
     public String secured(@AuthenticationPrincipal UserPrincipal principal) {
         return "This can only be seen by a logged in user. Your Email is: "
-                + principal.getEmail() + " your ID: " + principal.getUserId();
+                + principal.getUsername() + " your ID: " + principal.getUserId();
     }
 
     @GetMapping("/admin")

@@ -1,30 +1,29 @@
 package com.daotask.gymservice.security;
 
+import com.daotask.gymservice.GymServiceApplication;
+import com.daotask.gymservice.security.model.LoginRequest;
+import com.daotask.gymservice.security.model.LoginResponse;
+import com.daotask.gymservice.security.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import java.util.logging.Logger;
 
 @RestController
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
+    private final AuthService authService;
 
-    private final JWTIssuer jwtIssuer;
+    Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
 
-    @PostMapping("/auth/login")
-    public LoginResponse login(@RequestBody @Validated LoginRequest request){
-        var token = jwtIssuer.issue(1L,request.getUsername(), List.of("USER"));
-        return LoginResponse.builder()
-                .accessToken(token)
-                .build();
-    }
-
-    @GetMapping("/secured")
-    public String secured(){
-        return "If you see this you are logged in";
+    @PostMapping("/login")
+    public LoginResponse login(@RequestBody @Validated LoginRequest request) throws InterruptedException {
+        logger.info("Calling service");
+        return authService.attemptLogin(request.getUsername(), request.getPassword());
     }
 }

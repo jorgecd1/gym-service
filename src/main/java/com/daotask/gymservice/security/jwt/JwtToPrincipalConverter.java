@@ -16,7 +16,7 @@ public class JwtToPrincipalConverter {
 
         return UserPrincipal.builder()
                 .userId( Long.parseLong(jwt.getSubject()) )
-                .email( jwt.getClaim("e").asString() )
+                .username( jwt.getClaim("e").asString() )
                 .authorities( authorityList )
                 .build();
     }

@@ -23,7 +23,7 @@ public class JwtIssuer {
                 .withSubject(String.valueOf(request.userId))
                 .withIssuedAt(Date.from(now))
                 .withExpiresAt(Date.from(now.plus(properties.getTokenDuration())))
-                .withClaim("e", request.getEmail())
+                .withClaim("e", request.getUsername())
                 .withClaim("au", request.getRoles())
                 .sign(Algorithm.HMAC256(properties.getSecretKey()));
     }
@@ -32,7 +32,7 @@ public class JwtIssuer {
     @Builder
     public static class Request {
         private final Long userId;
-        private final String email;
+        private final String username;
         private final List<String> roles;
     }
 }
