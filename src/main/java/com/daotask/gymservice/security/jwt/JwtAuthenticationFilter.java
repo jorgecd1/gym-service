@@ -1,4 +1,4 @@
-package com.daotask.gymservice.security;
+package com.daotask.gymservice.security.jwt;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -15,29 +15,27 @@ import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-public class JWTAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+    private final JwtDecoder jwtDecoder;
+    private final JwtToPrincipalConverter jwtToPrincipalConverter;
 
-    private final JWTDecoder jwtDecoder;
-    private final JWTToPrincipalConverter jwtToPrincipalConverter;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         extractTokenFromRequest(request)
                 .map(jwtDecoder::decode)
-                        .map(jwtToPrincipalConverter::convert)
-                                .map(UserPrincipalAuthenticationToken::new)
-                                        .ifPresent(auth -> SecurityContextHolder.getContext().setAuthentication(auth));
+                .map(jwtToPrincipalConverter::convert)
+                .map(UserPrincipalAuthenticationToken::new)
+                .ifPresent(authentication -> SecurityContextHolder.getContext().setAuthentication(authentication));
 
-        filterChain.doFilter(request, response);
+        filterChain.doFilter(request, response); // Very important not to forget this
     }
 
-    private Optional<String> extractTokenFromRequest(HttpServletRequest request){
+    private Optional<String> extractTokenFromRequest(HttpServletRequest request) {
         var token = request.getHeader("Authorization");
-        if(StringUtils.hasText(token) && token.startsWith("Bearer ")){
+        if (StringUtils.hasText(token) && token.startsWith("Bearer ")) {
             return Optional.of(token.substring(7));
         }
-        else {
-            return Optional.empty();
-        }
+        return Optional.empty();
     }
 }

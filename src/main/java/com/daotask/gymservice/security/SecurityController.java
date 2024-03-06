@@ -1,15 +1,20 @@
 package com.daotask.gymservice.security;
 
-import lombok.RequiredArgsConstructor;
+import com.daotask.gymservice.security.jwt.UserPrincipal;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequiredArgsConstructor
 public class SecurityController {
+    @GetMapping("/secured")
+    public String secured(@AuthenticationPrincipal UserPrincipal principal) {
+        return "This can only be seen by a logged in user. Your Email is: "
+                + principal.getEmail() + " your ID: " + principal.getUserId();
+    }
 
-    @GetMapping("/")
-    public String landing(){
-        return "Hello, world!";
+    @GetMapping("/admin")
+    public String admin(@AuthenticationPrincipal UserPrincipal principal) {
+        return "If you see this, you are an admin. Your ID: " + principal.getUserId();
     }
 }

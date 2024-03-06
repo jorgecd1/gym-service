@@ -1,14 +1,14 @@
-package com.daotask.gymservice.security;
+package com.daotask.gymservice.security.jwt;
 
+import com.daotask.gymservice.security.jwt.UserPrincipal;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 
 public class UserPrincipalAuthenticationToken extends AbstractAuthenticationToken {
+    private final UserPrincipal principal;
 
-    private final UserPrincipal userPrincipal;
-
-    public UserPrincipalAuthenticationToken(UserPrincipal userPrincipal) {
-        super(userPrincipal.getAuthorities());
-        this.userPrincipal = userPrincipal;
+    public UserPrincipalAuthenticationToken(UserPrincipal principal) {
+        super(principal.getAuthorities());
+        this.principal = principal;
         setAuthenticated(true);
     }
 
@@ -19,6 +19,6 @@ public class UserPrincipalAuthenticationToken extends AbstractAuthenticationToke
 
     @Override
     public UserPrincipal getPrincipal() {
-        return userPrincipal;
+        return principal;
     }
 }
