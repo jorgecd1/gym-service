@@ -11,6 +11,7 @@
 	<groupId>com.dao-task</groupId>
 	<artifactId>gym-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>pom</packaging>
 	<name>gym-service</name>
 	<description>Demo project for Spring Boot</description>
 	<properties>
@@ -24,6 +25,20 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<!-- Circuit breaker -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starte-circutibreaker-resilience4j</artifactId>
+		</dependency>
+		<!-- Cloud dependencies -->
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-config</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starte-netflix-eureka-client</artifactId>
 		</dependency>
 		<!-- ADD Security Dependencies TODO -->
 		<dependency>

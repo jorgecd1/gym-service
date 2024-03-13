@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
+@FeignClient("trainer-service")
 public class TrainerService {
 
     TrainerRepository trainerRepository;
@@ -28,6 +29,7 @@ public class TrainerService {
     TrainingTypeRepository trainingTypeRepository;
     UserService userService;
     TrainingTypeService trainingTypeService;
+    private String serviceUrl ="http://trainer-service"
 
     Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
 
