@@ -22,12 +22,14 @@ import java.util.*;
 import java.util.logging.Logger;
 
 @Service
+@FeignClient("trainee-service")
 public class TraineeService {
 
     TraineeRepository traineeRepository;
     TrainerRepository trainerRepository;
     UserRepository userRepository;
     UserService userService;
+    private String serviceUrl ="http://trainee-service"
 
     Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
 

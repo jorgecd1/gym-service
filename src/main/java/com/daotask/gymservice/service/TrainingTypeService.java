@@ -16,11 +16,12 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
+@FeignClient("trainingtype-service")
 public class TrainingTypeService {
 
     TrainingTypeRepository trainingTypeRepository;
     Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
-
+    private String serviceUrl ="http://trainingtype-service"
     @Autowired
     public TrainingTypeService(TrainingTypeRepository trainingTypeRepository){
         this.trainingTypeRepository = trainingTypeRepository;

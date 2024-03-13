@@ -15,12 +15,13 @@ import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
+@FeignClient("user-service")
 public class UserService {
 
     UserRepository userRepository;
 
     Logger logger = Logger.getLogger(GymServiceApplication.class.getName());
-
+    private String serviceUrl ="http://user-service"
     @Autowired
     public UserService(UserRepository userRepository){
         this.userRepository = userRepository;
